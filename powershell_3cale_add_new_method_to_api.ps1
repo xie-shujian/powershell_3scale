@@ -3,7 +3,7 @@ $base_url="https://xxxxx"
 $access_token="xxxxx"
 $rules_file="rules.csv"
 ##service
-$service_name='test-tr'
+$service_id='111'
 ##paths
 $path_method_create="/admin/api/services/{service_id}/metrics/{metric_id}/methods.xml"
 $path_mapping_rule_create="/admin/api/services/{service_id}/proxy/mapping_rules.xml"
@@ -27,17 +27,6 @@ add-type @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 $ErrorActionPreference="Stop"
-
-##service create
-"create service"
-$full_url=$base_url + $path_service_create
-$body=@{
-    access_token=$access_token
-    name=$service_name
-}
-$reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
-$service_id=([xml]$reponse.Content).service.id
-$service_id
 
 ##get metric hits id
 "get hits id"
