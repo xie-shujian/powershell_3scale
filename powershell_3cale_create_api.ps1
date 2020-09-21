@@ -1,22 +1,18 @@
-$ErrorActionPreference="Stop"
-# get the directory of this script file
-$currentDirectory = [IO.Path]::GetDirectoryName($MyInvocation.MyCommand.Path)
-# get the full path and file name of the App.config file in the same directory as this script
-$appConfigFile = [IO.Path]::Combine($currentDirectory, 'config.xml')
-$rules_file = [IO.Path]::Combine($currentDirectory, 'rules.csv')
+$configFile = 'C:\workdata\ps\powershell_3scale\config.xml'
 
-# initialize the xml object
-$appConfig = New-Object XML
-# load the config file as an xml object
-$appConfig.Load($appConfigFile)
-$base_url=$appConfig.config.base_url
-$access_token=$appConfig.config.access_token
-$service_name=$appConfig.config.service_name
+$config=[XML](Get-Content $configFile)
+
+$base_url=$config.config.base_url
+$access_token=$config.config.access_token
+$service_name=$config.config.service_name
 ##paths
-$path_method_create=$appConfig.config.path_method_create
-$path_mapping_rule_create=$appConfig.config.path_mapping_rule_create
-$path_metric_list=$appConfig.config.path_metric_list
-$path_service_create=$appConfig.config.path_service_create
+$path_method_create=$config.config.paths.path_method_create
+$path_mapping_rule_create=$config.config.paths.path_mapping_rule_create
+$path_metric_list=$config.config.paths.path_metric_list
+$path_service_create=$config.config.paths.path_service_create
+
+# rules
+$rules=$config.config.rules.rule
 
 ##paras
 $content_type="application/x-www-form-urlencoded"
@@ -41,6 +37,7 @@ $body=@{
     access_token=$access_token
     name=$service_name
 }
+$full_url
 $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
 $service_id=([xml]$reponse.Content).service.id
 $service_id
@@ -53,7 +50,7 @@ $metric_id=([xml]$reponse.Content).metrics.metric.id
 $metric_id
 
 ##create method and mapping rules from config file
-$rules=Import-Csv $rules_file
+
 foreach($rule in $rules){
     $verb=$rule.verb
     $method=$rule.method
@@ -68,6 +65,7 @@ foreach($rule in $rules){
         system_name=$method
         unit="hit"
     }
+    $full_url
     $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
     $method_id=([xml]$reponse.Content).method.id
     $method_id

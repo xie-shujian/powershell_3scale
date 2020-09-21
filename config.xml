@@ -1,0 +1,23 @@
+<config>
+    <base_url>https://xxxxx.com</base_url>
+    <access_token>xxxxxx</access_token>
+    <paths>
+        <path_method_create>/admin/api/services/{service_id}/metrics/{metric_id}/methods.xml</path_method_create>
+        <path_mapping_rule_create>/admin/api/services/{service_id}/proxy/mapping_rules.xml</path_mapping_rule_create>
+        <path_metric_list>/admin/api/services/{service_id}/metrics.xml</path_metric_list>
+        <path_service_create>/admin/api/services.xml</path_service_create>
+    </paths>
+    <service_name>yy</service_name>
+    <rules>
+        <rule>
+            <verb>GET</verb>
+            <method>ggg</method>
+            <pattern>/mmm</pattern>
+        </rule>
+        <rule>
+            <verb>POST</verb>
+            <method>zzzz</method>
+            <pattern>/gfdg</pattern>
+        </rule>
+    </rules>
+</config>
