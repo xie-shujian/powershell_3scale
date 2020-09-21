@@ -1,32 +1,38 @@
-##env var
-$base_url="https://xxxxx"
-$access_token="xxxxx"
-$rules_file="rules.csv"
-##service
-$service_name='test-tr'
+$ErrorActionPreference="Stop"
+# get the directory of this script file
+$currentDirectory = [IO.Path]::GetDirectoryName($MyInvocation.MyCommand.Path)
+# get the full path and file name of the App.config file in the same directory as this script
+$appConfigFile = [IO.Path]::Combine($currentDirectory, 'config.xml')
+$rules_file = [IO.Path]::Combine($currentDirectory, 'rules.csv')
+
+# initialize the xml object
+$appConfig = New-Object XML
+# load the config file as an xml object
+$appConfig.Load($appConfigFile)
+$base_url=$appConfig.config.base_url
+$access_token=$appConfig.config.access_token
+$service_name=$appConfig.config.service_name
 ##paths
-$path_method_create="/admin/api/services/{service_id}/metrics/{metric_id}/methods.xml"
-$path_mapping_rule_create="/admin/api/services/{service_id}/proxy/mapping_rules.xml"
-$path_metric_list="/admin/api/services/{service_id}/metrics.xml"
-$path_service_create="/admin/api/services.xml"
+$path_method_create=$appConfig.config.path_method_create
+$path_mapping_rule_create=$appConfig.config.path_mapping_rule_create
+$path_metric_list=$appConfig.config.path_metric_list
+$path_service_create=$appConfig.config.path_service_create
+
 ##paras
 $content_type="application/x-www-form-urlencoded"
 $access_token_para="?access_token="+$access_token
 
 ##ignore self sign certificate
 add-type @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
-        }
-    }
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate,WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-$ErrorActionPreference="Stop"
 
 ##service create
 "create service"

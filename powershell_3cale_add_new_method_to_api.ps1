@@ -1,6 +1,6 @@
 ##env var
-$base_url="https://xxxxx"
-$access_token="xxxxx"
+$base_url="https://ipdev-admin.ip.paas-test.ubrmb.com"
+$access_token="ad21b55cf7239cea0ed9cf98b76b2df09c69770bca27b7ec52120ae545fb155a"
 $rules_file="rules.csv"
 ##service
 $service_id='111'
