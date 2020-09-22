@@ -1,15 +1,15 @@
 $configFile = 'C:\workdata\ps\powershell_3scale\config.xml'
-
 $config=[XML](Get-Content $configFile)
 
 $base_url=$config.config.base_url
 $access_token=$config.config.access_token
 $service_name=$config.config.service_name
 ##paths
-$path_method_create=$config.config.paths.path_method_create
-$path_mapping_rule_create=$config.config.paths.path_mapping_rule_create
-$path_metric_list=$config.config.paths.path_metric_list
-$path_service_create=$config.config.paths.path_service_create
+$path_method_create=$config.SelectSingleNode('config/paths/path[name="path_method_create"]/url').InnerText;
+$path_mapping_rule_create=$config.SelectSingleNode('config/paths/path[name="path_mapping_rule_create"]/url').InnerText;
+$path_metric_list=$config.SelectSingleNode('config/paths/path[name="path_metric_list"]/url').InnerText;
+$path_service_create=$config.SelectSingleNode('config/paths/path[name="path_service_create"]/url').InnerText;
+$path_service_list=$config.SelectSingleNode('config/paths/path[name="path_service_list"]/url').InnerText;
 
 # rules
 $rules=$config.config.rules.rule
@@ -29,17 +29,28 @@ add-type @"
         }
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+$ErrorActionPreference="Stop"
+#check if service exist
+$full_url=$base_url + $path_service_list +$access_token_para
+$reponse=Invoke-WebRequest -Method GET -Uri $full_url
+$content=[xml]$reponse.Content
+$service_id=$content.SelectSingleNode("services/service[name='$service_name']/id").InnerText
 
-##service create
-"create service"
-$full_url=$base_url + $path_service_create
-$body=@{
-    access_token=$access_token
-    name=$service_name
+if($service_id){
+    "service exist"
+}else{
+    ##service create
+    "create service"
+    $full_url=$base_url + $path_service_create
+    $body=@{
+        access_token=$access_token
+        name=$service_name
+        system_name=$service_name
+    }
+    $full_url
+    $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
+    $service_id=([xml]$reponse.Content).service.id
 }
-$full_url
-$reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
-$service_id=([xml]$reponse.Content).service.id
 $service_id
 
 ##get metric hits id
@@ -83,6 +94,7 @@ foreach($rule in $rules){
     }
     $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
     $rule_id=([xml]$reponse.Content).mapping_rule.id
+    $rule_id
 }
 
 
