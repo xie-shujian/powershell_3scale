@@ -1,6 +1,6 @@
 <config>
-    <base_url>https://xxxxxx</base_url>
-    <access_token>xxxxx</access_token>
+    <base_url>https://xxxxx</base_url>
+    <access_token>xxxxxx</access_token>
     <service_name>yyyy</service_name>
     <paths>        
         <path>
@@ -18,10 +18,6 @@
         <path>
             <name>path_metric_list</name>
             <url>/admin/api/services/{service_id}/metrics.xml</url>
-        </path>
-        <path>
-            <name>path_service_create</name>
-            <url>/admin/api/services/{service_id}/metrics/{metric_id}/methods.xml</url>
         </path>
         <path>
             <name>path_service_list</name>

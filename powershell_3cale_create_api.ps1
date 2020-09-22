@@ -1,4 +1,4 @@
-$configFile = 'C:\workdata\ps\powershell_3scale\config.xml'
+$configFile = "$PWD\config.xml"
 $config=[XML](Get-Content $configFile)
 
 $base_url=$config.config.base_url
@@ -8,9 +8,9 @@ $service_name=$config.config.service_name
 $path_method_create=$config.SelectSingleNode('config/paths/path[name="path_method_create"]/url').InnerText;
 $path_mapping_rule_create=$config.SelectSingleNode('config/paths/path[name="path_mapping_rule_create"]/url').InnerText;
 $path_metric_list=$config.SelectSingleNode('config/paths/path[name="path_metric_list"]/url').InnerText;
-$path_service_create=$config.SelectSingleNode('config/paths/path[name="path_service_create"]/url').InnerText;
 $path_service_list=$config.SelectSingleNode('config/paths/path[name="path_service_list"]/url').InnerText;
 
+$path_service_create=$path_service_list
 # rules
 $rules=$config.config.rules.rule
 
@@ -45,7 +45,6 @@ if($service_id){
     $body=@{
         access_token=$access_token
         name=$service_name
-        system_name=$service_name
     }
     $full_url
     $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
@@ -73,7 +72,6 @@ foreach($rule in $rules){
     $body=@{
         access_token=$access_token
         friendly_name=$method
-        system_name=$method
         unit="hit"
     }
     $full_url
