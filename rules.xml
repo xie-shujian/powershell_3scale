@@ -1,0 +1,27 @@
+<rules>
+  <rule>
+    <verb>GET</verb>
+    <method>ggg</method>
+    <pattern>/mmm</pattern>
+  </rule>
+  <rule>
+    <verb>POST</verb>
+    <method>zzzz</method>
+    <pattern>/gfdg</pattern>
+  </rule>
+  <rule>
+    <verb>POST</verb>
+    <method>z1</method>
+    <pattern>/z1</pattern>
+  </rule>
+  <rule>
+    <verb>POST</verb>
+    <method>z2</method>
+    <pattern>/ze</pattern>
+  </rule>
+  <rule>
+    <verb>POST</verb>
+    <method>z3</method>
+    <pattern>/z3</pattern>
+  </rule>
+</rules>

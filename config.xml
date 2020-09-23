@@ -1,7 +1,8 @@
 <config>
     <base_url>https://xxxxx</base_url>
-    <access_token>xxxxxx</access_token>
+    <access_token>xxxxxxxx</access_token>
     <service_name>yyyy</service_name>
+    <application_plan_name>appplan-xxx-xxx</application_plan_name>
     <paths>        
         <path>
             <name>path_method_create</name>
@@ -23,6 +24,14 @@
             <name>path_service_list</name>
             <url>/admin/api/services.xml</url>
         </path>
+        <path>
+            <name>path_application_plan</name>
+            <url>/admin/api/services/{service_id}/application_plans.xml</url>
+        </path>
+        <path>
+            <name>path_limit_create</name>
+            <url>/admin/api/application_plans/{application_plan_id}/metrics/{metric_id}/limits.xml</url>
+        </path>
     </paths>
     <rules>
         <rule>
@@ -36,4 +45,8 @@
             <pattern>/gfdg</pattern>
         </rule>
     </rules>
+    <limits>
+        <limit>zzzz</limit>
+        <limit>z1</limit>
+    </limits>
 </config>
