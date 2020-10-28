@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<base_url>https://xxxxx.com</base_url>
+	<access_token>xxxxxx</access_token>
+	<plan_id>164</plan_id>
+	<redirect_url>http://dummy.com</redirect_url>
+	<apps>
+		<app>
+			<account_id>44</account_id>
+			<name>rrrr</name>
+			<application_id>fsdafdasf</application_id>
+			<application_key>124321432143</application_key>
+		</app>
+		<app>
+			<account_id>43</account_id>
+			<name>rrr2</name>
+			<application_id>fdafsdaf</application_id>
+			<application_key>ffafdsafsdfa</application_key>
+		</app>
+		<app>
+			<account_id>42</account_id>
+			<name>rrrr3</name>
+			<application_id>fsdafdaf</application_id>
+			<application_key>fsdafasdfasfasfadsfsa</application_key>
+		</app>
+	</apps>
+</config>

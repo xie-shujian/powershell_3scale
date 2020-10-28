@@ -1,4 +1,4 @@
-$configFile = "$PWD\config.xml"
+$configFile = "$PWD\dev.xml"
 $config=[XML](Get-Content $configFile)
 
 $base_url=$config.config.base_url
