@@ -1,0 +1,5 @@
+<config>
+    <base_url>https://xxxxx</base_url>
+    <gw_url>https://xxxxxx</gw_url>
+    <access_token>xxxxxx</access_token>
+</config>

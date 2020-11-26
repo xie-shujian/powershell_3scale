@@ -1,0 +1,32 @@
+<admin>
+    <service>
+        <list>/admin/api/services.xml</list>
+        <read>/admin/api/services/{id}.xml</read>
+    </service>
+    <metric>
+        <list>/admin/api/services/{service_id}/metrics.xml</list>
+    </metric>
+    <method>
+        <list>/admin/api/services/{service_id}/metrics/{metric_id}/methods.xml</list>
+    </method>
+    <mapping_rule>
+        <list>/admin/api/services/{service_id}/proxy/mapping_rules.xml</list>
+        <show>/admin/api/services/{service_id}/proxy/mapping_rules/{id}.xml</show>
+    </mapping_rule>
+    <oidc>
+        <show>/admin/api/services/{service_id}/proxy/oidc_configuration.xml</show>
+    </oidc>
+    <plan>
+        <all>/admin/api/application_plans.xml</all>
+        <list>/admin/api/services/{service_id}/application_plans.xml</list>
+    </plan>
+    <account>
+        <list>/admin/api/accounts.xml</list>
+        <create>/admin/api/signup.xml</create>
+        <read>/admin/api/accounts/{id}.xml</read>
+    </account>
+    <application>
+        <all>/admin/api/applications.xml</all>
+        <list>/admin/api/accounts/{account_id}/applications.xml</list>
+    </application>
+</admin>
