@@ -29,4 +29,20 @@
         <all>/admin/api/applications.xml</all>
         <list>/admin/api/accounts/{account_id}/applications.xml</list>
     </application>
+    <proxy>
+        <read>/admin/api/services/{service_id}/proxy.xml</read>
+        <latest>/admin/api/services/{service_id}/proxy/configs/{environment}/latest.json</latest>
+        <promote>/admin/api/services/{service_id}/proxy/configs/{environment}/{version}/promote.json</promote>
+        <deploy>/admin/api/services/{service_id}/proxy/deploy.xml</deploy>
+    </proxy>
+    <backend>
+        <list>/admin/api/backend_apis.json</list>
+        <read>/admin/api/backend_apis/{id}.json</read>
+        <usage>
+            <list>/admin/api/services/{service_id}/backend_usages.json</list>
+        </usage>
+    </backend>
+    <policy>
+        <show>/admin/api/services/{service_id}/proxy/policies.json</show>
+    </policy>
 </admin>

@@ -1,0 +1,8 @@
+<config>
+    <base_url>https://xxxxxxx</base_url>
+    <access_token>xxxxxx</access_token>
+    <production_url>https://xxxxxx</production_url>
+	<stage_url>https://xxxxxx</stage_url>
+    <redirect_url>https://xxxxxx</redirect_url>
+    <issuer_url>https://xxxxxxxx</issuer_url>
+</config>

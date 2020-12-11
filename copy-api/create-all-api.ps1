@@ -10,13 +10,17 @@ add-type @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 $ErrorActionPreference="Stop"
+#env folder
+$folder="$PWD\conf\uat\"
+$cross_folder="$PWD\conf\cross\"
 #config file
-$configFile = "$PWD\config.xml"
+$configFile = $folder + "info.xml"
 $config=[XML](Get-Content $configFile)
 $base_url=$config.config.base_url
 $access_token=$config.config.access_token
+$stage_url=$config.config.stage_url
 #admin api
-$adminFile = "$PWD\admin-api.xml"
+$adminFile = "$PWD\conf\admin-api.xml"
 $adminAPI = [XML](Get-Content $adminFile)
 $path_service_list=$adminAPI.admin.service.list
 $path_service_read=$adminAPI.admin.service.read
@@ -28,8 +32,16 @@ $path_oidc_show=$adminAPI.admin.oidc.show
 $path_plan_list=$adminAPI.admin.plan.list
 $path_account_create=$adminAPI.admin.account.create
 $path_application_list=$adminAPI.admin.application.list
+$path_proxy_read=$adminAPI.admin.proxy.read
+$path_proxy_latest=$adminAPI.admin.proxy.latest
+$path_proxy_promote=$adminAPI.admin.proxy.promote
+$path_backend_list=$adminAPI.admin.backend.list
+$path_backend_usage_list=$adminAPI.admin.backend.usage.list
+$path_proxy_deploy=$adminAPI.admin.proxy.deploy
+$path_policy_show=$adminAPI.admin.policy.show
+##paras
 #apis
-$service_list_file = "$PWD\data\service_list.xml"
+$service_list_file = $cross_folder+"service_list.xml"
 $service_list_xml = [XML](Get-Content $service_list_file)
 $service_list=$service_list_xml.services.service
 ##paras
@@ -43,12 +55,32 @@ $old_plans=@()
 $new_plans=@()
 $old_accounts=@()
 $new_accounts=@()
+$old_backends=@()
+$new_backends=@()
 
-#get all service
-"get all service"
-$full_url=$base_url + $path_service_list + $access_token_para
-$reponse=Invoke-WebRequest -Method GET -TimeoutSec 60 -Uri $full_url
-$all_service=[xml]$reponse.Content
+#create backends
+$backend_file=$cross_folder+"backend.json"
+$backends_json= ConvertFrom-Json (Get-Content $backend_file -Raw)
+$backend_apis=$backends_json.backend_apis.backend_api
+$old_backends=$backend_apis.id
+
+foreach($backend_api in $backend_apis){
+    $name=$backend_api.name
+    $private_endpoint=$backend_api.private_endpoint
+    "create backend $name"
+    $full_url=$base_url + $path_backend_list            
+    $body=@{
+        access_token=$access_token
+        name=$name
+        private_endpoint=$private_endpoint
+    }
+    $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type
+    $rep_json=ConvertFrom-Json $reponse.Content
+    $backend_id=$rep_json.backend_api.id
+    $backend_id
+    $new_backends+=$backend_id
+    
+}
 
 #create service one by one
 foreach($service in $service_list){
@@ -56,34 +88,82 @@ foreach($service in $service_list){
     $old_metrics=@()
     $new_metrics=@()
 
+    $auth_mode=$service.backend_version
+
     $old_service_id=$service.id
     $service_name=$service.name    
     Write-Host "start create service " + $service_name -ForegroundColor green 
-    #check if service exist
-    "check if service exist"
-    $service_id=$all_service.SelectSingleNode("services/service[name='$service_name']/id").InnerText
-    if($service_id){
-        "service exist"
-    }else{
-        ##service create
-        "create service"
-        $full_url=$base_url + $path_service_list
-        $body=@{
-            access_token=$access_token
-            name=$service_name
-            deployment_option=$service.deployment_option
-            backend_version=$service.backend_version
-        }
-        $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type
-        $service_id=([xml]$reponse.Content).service.id
+    ##service create
+    "create service"
+    $full_url=$base_url + $path_service_list
+    $body=@{
+        access_token=$access_token
+        name=$service_name
+        deployment_option=$service.deployment_option
+        backend_version=$service.backend_version
     }
+    $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type
+    $service_id=([xml]$reponse.Content).service.id
     $service_id
 
     $old_services+=$service.id
     $new_services+=$service_id
 
+    "get backend id"
+    $backend_usage_file=$cross_folder+"backend_usage\" + $service.id + ".json"
+    $backend_usage_json= ConvertFrom-Json (Get-Content $backend_usage_file)
+    $backend_usages=$backend_usage_json.backend_usage
+    foreach($backend_usage in $backend_usages){
+        $path=$backend_usage.path
+        #look for new backend id
+        $new_backend_id=-1
+        for($i=0;$i -le $old_backends.count;$i++){
+            if($old_backends[$i] -eq $backend_usage.backend_id){
+                $new_backend_id=$new_backends[$i]
+                break
+            }
+        }
+        "add backend to service"
+        $full_url=$base_url + $path_backend_usage_list -replace "{service_id}",$service_id
+        $body=@{
+            access_token=$access_token
+            backend_api_id=$new_backend_id
+            path=$path
+        }
+        $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type   
+    }
+
+    #get proxy
+    $proxy_file = $cross_folder+"proxy\" + $service.id + ".xml"
+    $proxy_xml = [XML](Get-Content $proxy_file)
+    $old_proxy=$proxy_xml.proxy
+    #update proxy
+    "update proxy"
+    $full_url=$base_url + $path_proxy_read -replace "{service_id}",$service_id
+    $body=@{
+        access_token=$access_token
+        credentials_location=$old_proxy.credentials_location
+        oidc_issuer_endpoint=$old_proxy.oidc_issuer_endpoint
+        sandbox_endpoint=$stage_url
+    }
+    $reponse=Invoke-WebRequest -Method PATCH -Uri $full_url -body $body -ContentType $content_type
+
+    #get policy
+    $policy_file = $cross_folder+"policy\" + $service.id + ".json"
+    $policy = Get-Content $policy_file
+    $len=$policy.Length
+    $chain=$policy.Remove($len-1,1).Remove(0,19)
+    #update policy
+    "update policy"
+    $full_url=$base_url + $path_policy_show -replace "{service_id}",$service_id
+    $body=@{
+        access_token=$access_token
+        policies_config=$chain
+    }
+    $reponse=Invoke-WebRequest -Method PUT -Uri $full_url -body $body -ContentType $content_type
+
     #update oidc
-    if($service.backend_version -eq "oidc"){
+    if($auth_mode -eq "oidc"){
         "update oidc"
         $full_url=$base_url + $path_oidc_show -replace "{service_id}",$service_id
         $body=@{
@@ -127,7 +207,7 @@ foreach($service in $service_list){
             $body=@{
                 access_token=$access_token
                 friendly_name=$metric.friendly_name
-                unit="hit"
+                unit=1
             }
             $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type
             $metric_id=([xml]$reponse.Content).metric.id
@@ -160,7 +240,7 @@ foreach($service in $service_list){
      
     #create mapping rule
     #apis
-    $mapping_rule_file = "$PWD\mapping_rule\$old_service_id.xml"
+    $mapping_rule_file = $cross_folder+"mapping_rule\$old_service_id.xml"
     $mapping_rule_xml = [XML](Get-Content $mapping_rule_file)
     $mapping_rules=$mapping_rule_xml.mapping_rules.mapping_rule
     foreach($mapping_rule in $mapping_rules){
@@ -186,14 +266,22 @@ foreach($service in $service_list){
         }
         $reponse=Invoke-WebRequest -Method POST -Uri $full_url -body $body -ContentType $content_type
         $rule_id=([xml]$reponse.Content).mapping_rule.id
-        $rule_id
-    
+        $rule_id    
     }
+
+    #deploy to sandbox
+    "deploy to sandbox"
+    $full_url=$base_url + $path_proxy_deploy -replace "{service_id}",$service_id
+    $body=@{
+        access_token=$access_token
+    }
+    $reponse=Invoke-WebRequest -Method POST -TimeoutSec 60 -Uri $full_url -body $body -ContentType $content_type
+
 }
 
 #crete plan one by one
 "create plan one by one"
-$plan_file = "$PWD\data\plan.xml"
+$plan_file = $cross_folder+"plan.xml"
 $plan_xml = [XML](Get-Content $plan_file)
 $plans=$plan_xml.plans.plan
 foreach($plan in $plans){
@@ -221,7 +309,7 @@ foreach($plan in $plans){
 
 #create account one by one
 "create account one by one"
-$acount_file = "$PWD\data\account.xml"
+$acount_file = $cross_folder+"account.xml"
 $account_xml = [XML](Get-Content $acount_file)
 $accounts=$account_xml.accounts.account
 foreach($account in $accounts){
@@ -244,7 +332,7 @@ foreach($account in $accounts){
 
 #create application one by one
 "create application one by one"
-$application_file = "$PWD\data\application.xml"
+$application_file = $cross_folder+"application.xml"
 $application_xml = [XML](Get-Content $application_file)
 $applications=$application_xml.applications.application
 foreach($application in $applications){
